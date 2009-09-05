@@ -4,7 +4,6 @@
 require 'rubygems'
 require 'sinatra'
 require 'rcscript'
-require 'nokogiri'
 
 def run_rcscript(rsf_url, jobs)
   thread = Thread.new{
