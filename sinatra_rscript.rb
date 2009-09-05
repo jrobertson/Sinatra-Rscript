@@ -1,6 +1,7 @@
 #!/usr/bin/ruby  
 
-# sinatra_rscript.rb
+# file: sinatra_rscript.rb
+
 require 'rubygems'
 require 'sinatra'
 require 'rcscript'
