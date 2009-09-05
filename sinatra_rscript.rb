@@ -1,6 +1,7 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
+# update: 5-Sep-09
 
 require 'rubygems'
 require 'sinatra'
