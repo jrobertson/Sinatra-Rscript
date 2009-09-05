@@ -21,9 +21,12 @@ end
 url_base = 'http://rorbuilder.info/r/heroku/' #
 
 get '/:package_id/:job' do
+  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
-  jobs = "//job:" + params[:job]
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  jobs = "//job:" + job
   url = "%s%s.rsf" % [url_base, package_id] 
+  content_type h[extension], :charset => 'utf-8'
   run_rcscript(url, jobs)
 end
 
