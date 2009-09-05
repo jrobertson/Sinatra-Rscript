@@ -25,7 +25,8 @@ get '/:package_id/:job' do
 end
 
 get '/view-source/:package_id/' do
-  url_base = 'http://leo.qbitx.com/r/'
+  #url_base = 'http://leo.qbitx.com/r/'
+  url_base = 'http://rorbuilder.info/r/heroku/'
   package_id = params[:package_id] #'hello'
 
   url = "%s%s.rsf" % [url_base, package_id]
