@@ -22,10 +22,8 @@ get '/:package_id/:job' do
   package_id = params[:package_id] #
   jobs = "//job:" + params[:job]
   url = "%s%s.rsf" % [url_base, package_id] 
-  buffer = run_rcscript(url, jobs)
-  "<pre>%s</pre>" % buffer
+  run_rcscript(url, jobs)
 end
-
 
 get '/view-source/:package_id/' do
   package_id = params[:package_id] #
