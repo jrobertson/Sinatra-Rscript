@@ -16,9 +16,10 @@ def run_rcscript(rsf_url, jobs)
 end
 
 get '/:package_id/:job' do
-  url_base = 'http://leo.qbitx.com/r/'
-  package_id = params[:package_id] #'hello'
-  jobs = "//job:" + params[:job] #'//job:hello'
+  #url_base = 'http://leo.qbitx.com/r/'
+  url_base = 'http://rorbuilder.info/r/heroku/'
+  package_id = params[:package_id]
+  jobs = "//job:" + params[:job] 
   buffer = run_rcscript(url_base + package_id + '.rsf', jobs)
   #buffer = run_rcscript()
   "<pre>%s</pre>" % buffer
