@@ -24,7 +24,7 @@ get '/:package_id/:job' do
   "<pre>%s</pre>" % buffer
 end
 
-get '/view-source/:package_id' do
+get '/view-source/:package_id/' do
   url_base = 'http://leo.qbitx.com/r/'
   package_id = params[:package_id] #'hello'
 
