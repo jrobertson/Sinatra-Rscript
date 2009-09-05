@@ -39,7 +39,7 @@ end
 
 get '/view-source/:package_id/:job' do
   #url_base = 'http://leo.qbitx.com/r/'
-  url_base = 'http://rorbuilder.info/r/heroku'
+  url_base = 'http://rorbuilder.info/r/heroku/'
   package_id = params[:package_id] 
   *jobs = params[:job] 
 
