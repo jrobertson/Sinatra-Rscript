@@ -40,7 +40,7 @@ end
 
 get '/view-source/:package_id/:job' do
   package_id = params[:package_id] #
-  *jobs = params[:job].map {|x| x.sub(/\.\w{3}$/)}
+  *jobs = params[:job] 
 
   url = "%s%s.rsf" % [url_base, package_id]
   buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
