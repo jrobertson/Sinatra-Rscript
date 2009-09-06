@@ -24,10 +24,10 @@ class RScriptBase
     out_buffer = ''
     src = script.attribute('src')
     if src then
-      out_buffer = read_sourcecode(script.attribute('src').value)
+      out_buffer = eval(read_sourcecode(script.attribute('src').value))
     else
       code = script.text.to_s.strip.length > 0 ? script.text : script.cdatas.join.strip
-      out_buffer = code
+      out_buffer = eval(code)
     end
     out_buffer
   end
