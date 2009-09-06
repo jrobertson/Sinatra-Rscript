@@ -17,18 +17,6 @@ end
 #url_base = 'http://leo.qbitx.com/r/'
 url_base = 'http://rorbuilder.info/r/heroku/' #
 
-get '/' do
-  package_id = 'r'
-  job = 'p'
-  jobs = "//job:" + job
-  arg = 'packages'
-  url = "%s%s.rsf" % [url_base, package_id] 
-  content_type 'text/html', :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg).flatten(1)
-  code, args = result
-  eval(code)
-end
-
 get '/:alias' do
   url = url_base + "alias.xml?passthru=1"
 
@@ -45,8 +33,7 @@ get '/:package_id/:job' do
   jobs = "//job:" + job
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
-  result = run_rcscript(url, jobs)
-  code, args = result.flatten(1)
+  code = run_rcscript(url, jobs)
   eval(code)
 end
 
@@ -58,11 +45,11 @@ get '/:package_id/:job/:arg1' do
   arg = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg).flatten(1)
-  code, args = result
+  result = run_rcscript(url, jobs, arg)
+  code, args =result
   puts code.inspect
-  eval(code)
-  #"hi"
+#  eval(code)
+  "hi"
 end
 
 get '/view-source/:package_id/' do
