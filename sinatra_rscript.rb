@@ -25,8 +25,9 @@ get '/' do
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type 'text/html', :charset => 'utf-8'
   result = run_rcscript(url, jobs, arg).flatten(1)
-  code, args = result
-  eval(code)
+  result.inspect
+  #code, args = result
+  #eval(code)
 end
 =begin
 get '/:alias' do
