@@ -45,7 +45,8 @@ get '/:package_id/:job' do
   jobs = "//job:" + job
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
-  code = run_rcscript(url, jobs)
+  result = run_rcscript(url, jobs)
+  code, args = result.flatten(1)
   eval(code)
 end
 
