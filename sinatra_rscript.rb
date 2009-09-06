@@ -8,10 +8,13 @@ require 'sinatra'
 require 'rcscript'
 
 def run_rcscript(rsf_url, jobs, arg='')
+  thread = Thread.new{
     args = [jobs, rsf_url, arg]
     rs = RScript.new()
-    rs.run(args)
-
+    Thread.current[:out] = rs.run(args)
+  }
+  thread.join
+  thread[:out]
 end
 
 #url_base = 'http://leo.qbitx.com/r/'
@@ -45,10 +48,9 @@ get '/:package_id/:job/:arg1' do
   arg = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg)
-  code, args =result
-  puts code.inspect
-#  eval(code)
+  code = run_rcscript(url, jobs, arg)
+  puts code
+  #eval(code)
   "hi"
 end
 
