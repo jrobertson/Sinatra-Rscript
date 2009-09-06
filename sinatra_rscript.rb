@@ -24,11 +24,12 @@ get '/' do
   arg = 'packages'
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type 'text/html', :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg).flatten(1)
-  code, args = result
-  eval(code)
+  #result = run_rcscript(url, jobs, arg).flatten(1)
+  #code, args = result
+  #eval(code)
+  "hi"
 end
-
+=begin
 get '/:alias' do
   url = url_base + "alias.xml?passthru=1"
 
@@ -87,3 +88,5 @@ get '/view-source/:package_id/:job' do
     job.to_s
   end
 end
+
+=end
