@@ -59,7 +59,7 @@ class RScript < RScriptBase
       out = run_rsf(args) {|doc| doc.root.elements.to_a('//script').map {|s| run_script(s)}}    
     end 
 
-    out
+    out.flatten(1)
   end
   
   private
