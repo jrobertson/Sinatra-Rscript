@@ -20,6 +20,15 @@ end
 #url_base = 'http://leo.qbitx.com/r/'
 url_base = 'http://rorbuilder.info/r/heroku/' #
 
+get '/:alias' do
+  url = url_base + "alias.xml?passthru=1"
+
+  doc = Document.new(open(url, "UserAgent" => "Sinatra-Rscript").read)
+  uri = XPath.first(doc.root, "records/alias[name='#{params[:alias]}']/uri/text()")
+  puts uri.to_s
+  redirect uri.to_s
+end
+
 get '/:package_id/:job' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #

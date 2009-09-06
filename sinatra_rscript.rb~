@@ -20,13 +20,22 @@ end
 #url_base = 'http://leo.qbitx.com/r/'
 url_base = 'http://rorbuilder.info/r/heroku/' #
 
+get '/:alias' do
+  url = url_base + "alias.xml?passthru=1"
+
+  doc = Document.new(open(url, "UserAgent" => "Sinatra-Rscript").read)
+  uri = XPath.first(doc.root, "records/alias[name='timeline']/uri/text()")
+  puts uri.to_s
+  redirect uri.to_s
+end
+
 get '/:package_id/:job' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
   jobs = "//job:" + job
   url = "%s%s.rsf" % [url_base, package_id] 
-  #content_type h[extension], :charset => 'utf-8'
+  content_type h[extension], :charset => 'utf-8'
   code = run_rcscript(url, jobs)
   eval(code)
 end
