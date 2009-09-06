@@ -29,7 +29,7 @@ class RScriptBase
       code = script.text.to_s.strip.length > 0 ? script.text : script.cdatas.join.strip
       out_buffer = code
     end
-    out_buffer
+    [out_buffer, args]
   end
         
   def read_sourcecode(rsf)

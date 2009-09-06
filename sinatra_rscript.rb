@@ -7,18 +7,27 @@ require 'rubygems'
 require 'sinatra'
 require 'rcscript'
 
-def run_rcscript(rsf_url, jobs)
-  thread = Thread.new{
-    args = [jobs, rsf_url]
+def run_rcscript(rsf_url, jobs, arg='')
+    args = [jobs, rsf_url, arg]
     rs = RScript.new()
-    Thread.current[:out] = rs.run(args)
-  }
-  thread.join
-  thread[:out]
+    rs.run(args)
+
 end
 
 #url_base = 'http://leo.qbitx.com/r/'
 url_base = 'http://rorbuilder.info/r/heroku/' #
+
+get '/' do
+  package_id = 'r'
+  job = 'p'
+  jobs = "//job:" + job
+  arg = 'packages'
+  url = "%s%s.rsf" % [url_base, package_id] 
+  content_type 'text/html', :charset => 'utf-8'
+  result = run_rcscript(url, jobs, arg).flatten(1)
+  code, args = result
+  eval(code)
+end
 
 get '/:alias' do
   url = url_base + "alias.xml?passthru=1"
@@ -38,6 +47,21 @@ get '/:package_id/:job' do
   content_type h[extension], :charset => 'utf-8'
   code = run_rcscript(url, jobs)
   eval(code)
+end
+
+get '/:package_id/:job/:arg1' do
+  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
+  package_id = params[:package_id] #
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  jobs = "//job:" + job
+  arg = params[:arg1]
+  url = "%s%s.rsf" % [url_base, package_id] 
+  content_type h[extension], :charset => 'utf-8'
+  result = run_rcscript(url, jobs, arg).flatten(1)
+  code, args = result
+  puts code.inspect
+  eval(code)
+  #"hi"
 end
 
 get '/view-source/:package_id/' do
