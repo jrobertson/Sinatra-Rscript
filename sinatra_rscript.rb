@@ -26,8 +26,8 @@ get '/' do
   content_type 'text/html', :charset => 'utf-8'
   result = run_rcscript(url, jobs, arg)
   result.inspect
-  #code, args = result
-  #eval(code)
+  code, args = result
+  eval(code)
 end
 =begin
 get '/:alias' do
