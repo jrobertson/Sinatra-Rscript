@@ -84,8 +84,9 @@ get '/view-source/:package_id/:job' do
   doc = Document.new(buffer)
 
   jobs.map!{|x| "@id='%s'" % x}
-  doc.root.elements.to_a("//job[#{jobs.join(' or ')}]").map do |job|
+  out = doc.root.elements.to_a("//job[#{jobs.join(' or ')}]").map do |job|
     job.to_s
   end
+  out.join("\n")
 end
 
