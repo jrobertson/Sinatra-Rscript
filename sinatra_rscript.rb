@@ -51,6 +51,21 @@ get '/:package_id/:job' do
   eval(code)
 end
 
+get '/view-source/:package_id/:job' do
+  package_id = params[:package_id] #
+  *jobs = params[:job] 
+
+  url = "%s%s.rsf" % [url_base, package_id]
+  buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
+  content_type 'text/plain', :charset => 'utf-8'
+  doc = Document.new(buffer)
+
+  jobs.map!{|x| "@id='%s'" % x}
+  doc.root.elements.to_a("//job[#{jobs.join(' or ')}]").map do |job|
+    job.to_s
+  end
+end
+
 get '/:package_id/:job/:arg1' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
@@ -74,19 +89,5 @@ get '/view-source/:package_id/' do
   buffer
 end
 
-get '/view-source/:package_id/:job' do
-  package_id = params[:package_id] #
-  *jobs = params[:job] 
 
-  url = "%s%s.rsf" % [url_base, package_id]
-  buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
-  content_type 'text/plain', :charset => 'utf-8'
-  doc = Document.new(buffer)
-
-  jobs.map!{|x| "@id='%s'" % x}
-  out = doc.root.elements.to_a("//job[#{jobs.join(' or ')}]").map do |job|
-    job.to_s
-  end
-  out.join("\n")
-end
 
