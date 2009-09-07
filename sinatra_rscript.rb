@@ -47,7 +47,7 @@ get '/:package_id/:job' do
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
   result = run_rcscript(url, jobs)
-  code, args = result.flatten(1)
+  code, args = result
   eval(code)
 end
 
@@ -59,7 +59,7 @@ get '/:package_id/:job/:arg1' do
   arg = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg).flatten(1)
+  result = run_rcscript(url, jobs, arg)
   code, args = result
   puts code.inspect
   eval(code)
