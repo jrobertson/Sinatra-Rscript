@@ -24,7 +24,7 @@ get '/' do
   arg = 'packages'
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type 'text/html', :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg).flatten(1)
+  result = run_rcscript(url, jobs, arg)
   result.inspect
   #code, args = result
   #eval(code)
