@@ -29,7 +29,7 @@ get '/' do
   code, args = result
   eval(code)
 end
-=begin
+
 get '/:alias' do
   url = url_base + "alias.xml?passthru=1"
 
@@ -89,4 +89,3 @@ get '/view-source/:package_id/:job' do
   end
 end
 
-=end
