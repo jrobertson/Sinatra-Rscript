@@ -66,7 +66,6 @@ class RScript < RScriptBase
       
   def run_rsf(args=[])
     rsfile = args[0]; args.shift
-    puts 'xxxx ' + args.inspect
     $rsfile = rsfile[/[a-zA-z0-9]+(?=\.rsf)/]
     yield(Document.new(read_sourcecode(rsfile)))
   end
