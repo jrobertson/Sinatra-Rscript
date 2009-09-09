@@ -82,7 +82,7 @@ get '/do/:package_id/:job/:arg1' do
   code = result.first.map {|x| x.first}.join
   puts code.inspect
   eval(code)
-  "hi"
+  #"hi"
 end
 
 get '/view-source/:package_id/' do

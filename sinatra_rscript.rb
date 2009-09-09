@@ -18,16 +18,7 @@ end
 url_base = 'http://rorbuilder.info/r/heroku/' #
 
 get '/' do
-  package_id = 'r'
-  job = 'p'
-  jobs = "//job:" + job
-  arg = 'packages'
-  url = "%s%s.rsf" % [url_base, package_id] 
-  content_type 'text/html', :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg)
-  result.inspect
-  code, args = result
-  eval(code)
+  redirect '/do/r/p/packages'
 end
 
 get '/:alias' do
