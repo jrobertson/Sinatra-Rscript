@@ -39,7 +39,7 @@ get '/:alias' do
   redirect uri.to_s
 end
 
-get '/:package_id/:job' do
+get '/do/:package_id/:job' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
