@@ -1,7 +1,7 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 5-Sep-09
+# update: 9-Sep-09
 
 require 'rubygems'
 require 'sinatra'
@@ -35,7 +35,6 @@ get '/:alias' do
 
   doc = Document.new(open(url, "UserAgent" => "Sinatra-Rscript").read)
   uri = XPath.first(doc.root, "records/alias[name='#{params[:alias]}']/uri/text()")
-  puts uri.to_s
   redirect uri.to_s
 end
 
@@ -66,7 +65,7 @@ get '/view-source/:package_id/:job' do
   end
 end
 
-get '/:package_id/:job/:arg1' do
+get '/do/:package_id/:job/:arg1' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']

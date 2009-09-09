@@ -1,0 +1,5 @@
+README
+------
+
+Sinatra-Rscript is a plain Sinatra application which is driven by the Ruby Script File engine.
+

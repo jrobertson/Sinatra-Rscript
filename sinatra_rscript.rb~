@@ -1,7 +1,7 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 5-Sep-09
+# update: 9-Sep-09
 
 require 'rubygems'
 require 'sinatra'
@@ -39,7 +39,7 @@ get '/:alias' do
   redirect uri.to_s
 end
 
-get '/:package_id/:job' do
+get '/do/:package_id/:job' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
@@ -49,6 +49,21 @@ get '/:package_id/:job' do
   result = run_rcscript(url, jobs)
   code, args = result
   eval(code)
+end
+
+get '/view-source/:package_id/:job' do
+  package_id = params[:package_id] #
+  *jobs = params[:job] 
+
+  url = "%s%s.rsf" % [url_base, package_id]
+  buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
+  content_type 'text/plain', :charset => 'utf-8'
+  doc = Document.new(buffer)
+
+  jobs.map!{|x| "@id='%s'" % x}
+  doc.root.elements.to_a("//job[#{jobs.join(' or ')}]").map do |job|
+    job.to_s
+  end
 end
 
 get '/:package_id/:job/:arg1' do
@@ -73,26 +88,6 @@ get '/view-source/:package_id/' do
   content_type 'text/plain', :charset => 'utf-8'
   buffer
 end
-get '/view-source/r/p' do
-  "cunt"
-end
 
-get '/view-source/:package_id/:job' do
-  #package_id = params[:package_id] #
-  #*jobs = params[:job] 
 
-  #url = "%s%s.rsf" % [url_base, package_id]
-  #url
-  "fuck"
- # buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
- # content_type 'text/plain', :charset => 'utf-8'
- # buffer
-  #doc = Document.new(buffer)
-  #doc.to_s
-  #jobs.map!{|x| "@id='%s'" % x}
-  #out = doc.root.elements.to_a("//job[#{jobs.join(' or ')}]").map do |job|
-  #  job.to_s
-  #end
-  #out.join("\n")
-end
 
