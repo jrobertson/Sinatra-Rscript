@@ -44,8 +44,9 @@ get '/do/:package_id/:job' do
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
   jobs = "//job:" + job
   url = "%s%s.rsf" % [url_base, package_id] 
-  content_type h[extension], :charset => 'utf-8'
+  @content_type = h[extension]
   result = run_rcscript(url, jobs)
+  content_type @content_type, :charset => 'utf-8'
   code, args = result
   eval(code)
 end

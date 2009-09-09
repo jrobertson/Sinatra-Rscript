@@ -46,9 +46,10 @@ get '/do/:package_id/:job' do
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
   result = run_rcscript(url, jobs)
-  content_type @content_type, :charset => 'utf-8'
   code, args = result
-  eval(code)
+  out = eval(code)
+  content_type @content_type, :charset => 'utf-8'
+  out
 end
 
 get '/view-source/:package_id/:job' do
