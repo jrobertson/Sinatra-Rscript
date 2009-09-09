@@ -46,8 +46,10 @@ get '/do/:package_id/:job' do
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
   result = run_rcscript(url, jobs)
-  code, args = result
+  # get the code
+  code = result.first.map {|x| x.first}.join
   out = eval(code)
+
   content_type @content_type, :charset => 'utf-8'
   out
 end
