@@ -46,6 +46,7 @@ get '/do/:package_id/:job' do
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
   result = run_rcscript(url, jobs)
+
   # get the code
   code = result.first.map {|x| x.first}.join
   out = eval(code)
@@ -74,11 +75,11 @@ get '/do/:package_id/:job/:arg1' do
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
   jobs = "//job:" + job
-  arg = params[:arg1]
+  *args = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
   content_type h[extension], :charset => 'utf-8'
-  result = run_rcscript(url, jobs, arg)
-  code, args = result
+  result = run_rcscript(url, jobs)
+  code = result.first.map {|x| x.first}.join
   puts code.inspect
   eval(code)
   #"hi"
