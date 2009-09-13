@@ -18,7 +18,7 @@ end
 url_base = 'http://rorbuilder.info/r/heroku/' #
 
 get '/' do
-  redirect '/do/r/p/packages'
+  redirect '/do/r/p/packages'             
 end
 
 get '/:alias' do
@@ -68,12 +68,14 @@ get '/do/:package_id/:job/:arg1' do
   jobs = "//job:" + job
   *args = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
-  content_type h[extension], :charset => 'utf-8'
+  @content_type = h[extension]
   result = run_rcscript(url, jobs)
   code = result.first.map {|x| x.first}.join
-  puts code.inspect
-  eval(code)
-  #"hi"
+
+  out = eval(code)
+  content_type @content_type, :charset => 'utf-8'
+  out
+
 end
 
 get '/view-source/:package_id/' do
@@ -84,5 +86,8 @@ get '/view-source/:package_id/' do
   buffer
 end
 
+get '/do/:package_id/' do
+  redirect "/do/r/p/" + params[:package_id]
+end
 
 
