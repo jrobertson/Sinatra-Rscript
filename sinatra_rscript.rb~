@@ -16,6 +16,7 @@ end
 
 #url_base = 'http://leo.qbitx.com/r/'
 url_base = 'http://rorbuilder.info/r/heroku/' #
+@@projectx = {}    
 
 get '/' do
   redirect '/do/r/p/packages'             
@@ -68,12 +69,14 @@ get '/do/:package_id/:job/:arg1' do
   jobs = "//job:" + job
   *args = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
-  content_type h[extension], :charset => 'utf-8'
+  @content_type = h[extension]
   result = run_rcscript(url, jobs)
   code = result.first.map {|x| x.first}.join
-  puts code.inspect
-  eval(code)
-  #"hi"
+
+  out = eval(code)
+  content_type @content_type, :charset => 'utf-8'
+  out
+
 end
 
 get '/view-source/:package_id/' do
@@ -88,4 +91,43 @@ get '/do/:package_id/' do
   redirect "/do/r/p/" + params[:package_id]
 end
 
+helpers do
 
+  def projectx_handler(xml_project)
+    out = ''
+    doc = Document.new(xml_project)
+    project_name = doc.root.attribute('name').to_s
+    if @@projectx.has_key? project_name then
+
+	    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
+	      method = node_method.attributes.get_attribute('name').to_s
+        puts method
+	      params = node_method.elements['params'].to_s
+        method_out = @@projectx[project_name].call(method, params)
+        method_out
+	      #exit
+
+	      #projectx.invoke(method, params)
+	    end
+    else
+      out = "that project doesn't exist"
+    end
+    out
+  end
+end
+
+# projectx request
+get '/p/:project_name/:method_name' do
+  project_name = params[:project_name]
+  method_name = params[:method_name]
+  params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}   
+  xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
+  projectx_handler(xml_project)
+end
+
+
+# projectx request
+get '/p/projectx' do
+  xml_project = request.params.to_a[0][1]
+  projectx_handler(xml_project)
+end

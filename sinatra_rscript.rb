@@ -16,6 +16,7 @@ end
 
 #url_base = 'http://leo.qbitx.com/r/'
 url_base = 'http://rorbuilder.info/r/heroku/' #
+@@projectx = {}    
 
 get '/' do
   redirect '/do/r/p/packages'             
@@ -90,4 +91,42 @@ get '/do/:package_id/' do
   redirect "/do/r/p/" + params[:package_id]
 end
 
+helpers do
 
+  def projectx_handler(xml_project)
+
+    out = ''
+    doc = Document.new(xml_project)
+    project_name = doc.root.attribute('name').to_s
+
+    if @@projectx.has_key? project_name then
+
+	    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
+	      method = node_method.attributes.get_attribute('name').to_s
+        puts method
+	      params = node_method.elements['params'].to_s
+        method_out = @@projectx[project_name].call(method, params)
+        method_out
+	    end
+    else
+      out = "that project doesn't exist"
+    end
+    out
+  end
+end
+
+# projectx request
+get '/p/:project_name/:method_name' do
+  project_name = params[:project_name]
+  method_name = params[:method_name]
+  params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}   
+  xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
+  projectx_handler(xml_project)
+end
+
+
+# projectx request
+get '/p/projectx' do
+  xml_project = request.params.to_a[0][1]
+  projectx_handler(xml_project)
+end
