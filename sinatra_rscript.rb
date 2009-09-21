@@ -7,18 +7,6 @@ require 'rubygems'
 require 'sinatra'
 require 'rcscript'
 
-def run_rcscript(rsf_url, jobs, arg='')
-    args = [jobs, rsf_url, arg]
-    rs = RScript.new()
-    rs.run(args)
-
-end
-
-#url_base = 'http://leo.qbitx.com/r/'
-url_base = 'http://rorbuilder.info/r/heroku/' #
-@@application_register = {}
-@@projectx = {}    
-
 get '/' do
   redirect '/do/r/p/packages'             
 end
@@ -94,6 +82,14 @@ end
 
 helpers do
 
+  url_base = 'http://rorbuilder.info/r/heroku/' #
+
+  def run_rcscript(rsf_url, jobs, arg='')
+    args = [jobs, rsf_url, arg]
+    rs = RScript.new()
+    rs.run(args)
+  end
+
   def projectx_handler(xml_project)
 
     out = ''
@@ -106,12 +102,15 @@ helpers do
 	      method = node_method.attributes.get_attribute('name').to_s
         puts method
 	      params = node_method.elements['params'].to_s
-        method_out = @@app.execute(project_name, method, params)
+        method_out, @content_type = @@app.execute(project_name, method, params)
         method_out
 	    end
     else
       out = "that project doesn't exist"
     end
+    @content_type ||= 'text/xml'
+
+    content_type @content_type, :charset => 'utf-8'
     out
   end
 
@@ -131,10 +130,8 @@ helpers do
       if self.available? app_name then
         handler_name = @available[app_name]
 	      @running[app_name] = eval(handler_name + "_handler.new")
-        puts 'good times'
 	      return "'%s' running ..." % app_name
       else
-        puts ' bad times'
       	return "app %s not available" % app_name
       end      
     end
