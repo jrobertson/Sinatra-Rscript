@@ -1,11 +1,22 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 9-Sep-09
+# update: 21-Sep-09
 
 require 'rubygems'
 require 'sinatra'
 require 'rcscript'
+
+
+
+url_base = 'http://rorbuilder.info/r/heroku/' #
+
+def run_rcscript(rsf_url, jobs, arg='')
+  args = [jobs, rsf_url, arg]
+  rs = RScript.new()
+  rs.run(args)
+end
+
 
 get '/' do
   redirect '/do/r/p/packages'             
@@ -82,8 +93,6 @@ end
 
 helpers do
 
-  url_base = 'http://rorbuilder.info/r/heroku/' #
-
   def run_rcscript(rsf_url, jobs, arg='')
     args = [jobs, rsf_url, arg]
     rs = RScript.new()
@@ -118,7 +127,6 @@ helpers do
     def initialize()
       @available = {}
       @running = {}
-      puts 'cool app'
     end
 
     def load(app_name, handler_name)
@@ -176,6 +184,13 @@ helpers do
       end
     end
 
+    def show_public_methods(app_name)
+      if running? app_name 
+        return @running[app_name].public_methods.grep(/call_/).map {|x| x.gsub(/call_/,'').gsub(/_/,'-')}.sort.join(', ')
+      else
+        return "app %s not running" % app_name
+      end
+    end
   end
 
 
