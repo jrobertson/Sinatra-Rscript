@@ -206,14 +206,10 @@ helpers do
 end
 
 # projectx request
-get '/p/:project_name/:method_name*' do
+get '/p/:project_name/:method_name' do
   project_name = params[:project_name]
   method_name = params[:method_name]
-  if params[:splat].empty? then
-  params = "<params>%s</params>" % rparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-  else   
-    params[:splat]
-  end
+  params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
   xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
   projectx_handler(xml_project)
 end
