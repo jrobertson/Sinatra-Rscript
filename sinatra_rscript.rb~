@@ -1,16 +1,16 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 22-Sep-09
+# update: 21-Sep-09
 
 require 'rubygems'
 require 'sinatra'
 require 'rcscript'
 
 
-
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@routes = {}
+
 
 def run_rcscript(rsf_url, jobs, arg='')
   args = [jobs, rsf_url, arg]
@@ -44,7 +44,12 @@ get '/do/:package_id/:job' do
   jobs = "//job:" + job
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
-  out = run(url, jobs)
+  result = run_rcscript(url, jobs)
+
+  # get the code
+  code = result.first.map {|x| x.first}.join
+  out = eval(code)
+
   content_type @content_type, :charset => 'utf-8'
   out
 end
@@ -72,7 +77,10 @@ get '/do/:package_id/:job/:arg1' do
   *args = params[:arg1]
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
-  out = run(url, jobs)
+  result = run_rcscript(url, jobs)
+  code = result.first.map {|x| x.first}.join
+
+  out = eval(code)
   content_type @content_type, :charset => 'utf-8'
   out
 
@@ -96,12 +104,6 @@ helpers do
     args = [jobs, rsf_url, arg]
     rs = RScript.new()
     rs.run(args)
-  end
-
-  def run(url, jobs)
-	  result = run_rcscript(url, jobs)
-	  code = result.first.map {|x| x.first}.join
-	  eval(code)
   end
 
   def projectx_handler(xml_project)
@@ -204,7 +206,7 @@ helpers do
 end
 
 # projectx request
-get '/p/:project_name/:method_name' do
+get '/p/:project_name/:method_name*' do
   project_name = params[:project_name]
   method_name = params[:method_name]
   if params[:splat].empty? then
@@ -224,17 +226,23 @@ get '/p/projectx' do
 end
 
 # custom routes
-get '/zz*' do
-  puts @@routes.inspect
-  puts params[:splat].class
+get '/*' do
   key = params[:splat].join
   if @@routes.has_key? key then
     @@routes[key].call()
   else
-    "no match"
+    route = @@routes.detect {|k,v| puts key + ' ' + k; key[/#{k}/]}	    
+    o = ($~)
+    if o.is_a? MatchData then
+      a = o.captures
+      route[1].call(a)
+    else
+      "no match"
+    end
   end
 end
 
-puts 'boot script started'
+
+puts 'thing started'
 url = url_base + 'r.rsf'
-run(url, '//job:p36')
+run(url, '//job:bootstrap')
