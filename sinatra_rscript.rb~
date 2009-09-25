@@ -209,7 +209,7 @@ end
 get '/p/:project_name/:method_name' do
   project_name = params[:project_name]
   method_name = params[:method_name]
-  params = "<params>%s</params>" % req.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
+  params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
   xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
   projectx_handler(xml_project)
 end
@@ -222,7 +222,7 @@ get '/p/projectx' do
 end
 
 # custom routes
-get '/*' do
+get '/zz*' do
   key = params[:splat].join
   if @@routes.has_key? key then
     @@routes[key].call()
