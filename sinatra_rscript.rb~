@@ -1,12 +1,11 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 21-Sep-09
+# update: 27-Sep-09
 
 require 'rubygems'
 require 'sinatra'
 require 'rcscript'
-
 
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@routes = {}
@@ -222,7 +221,7 @@ get '/p/projectx' do
 end
 
 # custom routes
-get '/zz*' do
+get '/*' do
   key = params[:splat].join
   if @@routes.has_key? key then
     @@routes[key].call()

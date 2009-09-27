@@ -1,11 +1,13 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 21-Sep-09
+# update: 27-Sep-09
 
 require 'rubygems'
 require 'sinatra'
 require 'rcscript'
+require 'rack/contrib'
+use Rack::Evil
 
 
 url_base = 'http://rorbuilder.info/r/heroku/' #
