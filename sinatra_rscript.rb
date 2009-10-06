@@ -49,7 +49,7 @@ get '/do/:package_id/:job' do
   result = run_rcscript(url, jobs)
 
   # get the code
-  code = result.first.map {|x| x.first}.join
+  code = result.first.map {|x| x.first}.join(';')
   out = eval(code)
 
   content_type @content_type, :charset => 'utf-8'
