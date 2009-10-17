@@ -50,7 +50,6 @@ get '/do/:package_id/:job' do
 
   # get the code
   code = result.first.map {|x| x.first}.join(';')
-  puts 'code : ' + code
   out = eval(code)
 
   content_type @content_type, :charset => 'utf-8'

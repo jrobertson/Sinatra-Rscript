@@ -15,7 +15,7 @@ class RScriptBase
   end
   
   def run(doc)
-    doc.root.elements.to_a('//script').map {|s| run_script(s)}.join
+    doc.root.elements.to_a('//script').map {|s| run_script(s)}.join(';')
   end
   
   protected
