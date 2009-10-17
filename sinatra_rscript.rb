@@ -13,7 +13,6 @@ use Rack::Evil
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@routes = {}
 @@services = {}
-@@temp_route_id = 'a'
 
 def run_rcscript(rsf_url, jobs, arg='')
   args = [jobs, rsf_url, arg]
