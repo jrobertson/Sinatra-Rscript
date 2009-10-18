@@ -255,9 +255,10 @@ get '/load/:package_id/:job' do
   # get the code
   code = result.first.map {|x| x.first}.join(';')
   proc1 = Proc.new {|params|
+    puts 'params : ' + params.inspect
     h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
     @content_type = h[extension]
-    puts 'ext : ' + extension + ' ' + @content_type
+    #puts 'ext : ' + extension + ' ' + @content_type
     out = eval(code)
 
     [out, @content_type]

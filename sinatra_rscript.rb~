@@ -257,7 +257,7 @@ get '/load/:package_id/:job' do
   proc1 = Proc.new {|params|
     h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
     @content_type = h[extension]
-    puts 'ext : ' + extension + ' ' + @content_type
+    #puts 'ext : ' + extension + ' ' + @content_type
     out = eval(code)
 
     [out, @content_type]
@@ -271,7 +271,6 @@ end
 
 # custom routes
 get '/*' do
-  puts 'params : ' + params.inspect
   key = params[:splat].join
   out, @content_type = follow_route(key)  
   @content_type ||= 'text/html'
