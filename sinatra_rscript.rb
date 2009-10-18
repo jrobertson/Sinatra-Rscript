@@ -13,6 +13,7 @@ use Rack::Evil
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@routes = {}
 @@services = {}
+@content_type = 'tex/html'
 
 def run_rcscript(rsf_url, jobs, arg='')
   args = [jobs, rsf_url, arg]
@@ -242,10 +243,39 @@ helpers do
 
 end
 
+get '/load/:package_id/:job' do
+
+  package_id = params[:package_id] #
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  jobs = "//job:" + job
+  url = "%s%s.rsf" % [url_base, package_id] 
+
+  result = run_rcscript(url, jobs)
+
+  # get the code
+  code = result.first.map {|x| x.first}.join(';')
+  proc1 = Proc.new {|params|
+    h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
+    @content_type = h[extension]
+    puts 'ext : ' + extension + ' ' + @content_type
+    out = eval(code)
+
+    [out, @content_type]
+  }
+  route = "%s/%s" % [package_id, job]
+  @@routes[route] = {:route => :get, :proc => proc1}
+  content_type 'text/plain', :charset => 'utf-8'
+  #out
+  'job loaded'
+end
+
 # custom routes
 get '/*' do
   key = params[:splat].join
-  follow_route(key)
+  out, @content_type = follow_route(key)  
+  @content_type ||= 'text/html'
+  content_type @content_type, :charset => 'utf-8'
+  out
 end
 
 post '/*' do
