@@ -232,9 +232,9 @@ helpers do
       @@routes[key][:proc].call(params)
     else
       route = @@routes.detect {|k,v| key[/#{k}/]}	    
+      puts 'route : ' + route.to_s
       o = ($~)
-
-      #puts 'chimp : '  + args.inspect
+      puts 'oooo ' + o.inspect.to_s
       if o.is_a? MatchData then
         remaining = $'
         #puts 'remaining : ' + remaining
@@ -245,7 +245,7 @@ helpers do
           args = []
         end
         #a = o.captures
-        #puts 'a : ' + a.inspect
+
         route[1][:proc].call( params, args)
       else
         "no match"
@@ -267,11 +267,9 @@ get '/load/:package_id/:job' do
   # get the code
   code = result.first.map {|x| x.first}.join(';')
   proc1 = Proc.new {|params, args|
-    puts 'vvparams : ' + params.inspect.to_s
-    puts 'vvargs : ' + args.inspect.to_s
     h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
     @content_type = h[extension]
-    #puts 'ext : ' + extension + ' ' + @content_type
+
     out = eval(code)
 
     [out, @content_type]
@@ -279,7 +277,7 @@ get '/load/:package_id/:job' do
   route = "%s/%s" % [package_id, job]
   @@routes[route] = {:route => :get, :proc => proc1}
   content_type 'text/plain', :charset => 'utf-8'
-  #out
+
   'job loaded'
 end
 

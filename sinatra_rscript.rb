@@ -232,11 +232,10 @@ helpers do
       @@routes[key][:proc].call(params)
     else
       route = @@routes.detect {|k,v| key[/#{k}/]}	    
+      puts 'route : ' + route.to_s
       o = ($~)
-
       if o.is_a? MatchData then
         remaining = $'
-        #puts 'remaining : ' + remaining
         if remaining then
           args = remaining.split('/')
           args.shift
