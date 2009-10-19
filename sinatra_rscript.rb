@@ -48,7 +48,7 @@ def projectx_handler(xml_project)
   end
   @content_type ||= 'text/xml'
 
-  content_type @content_type, :charset => 'utf-8'
+  content_type @content_type, :charset => 'utf-8' if defined? content_type
   out
 end
 
