@@ -72,12 +72,13 @@ get '/view-source/:package_id/:job' do
   end
 end
 
-get '/do/:package_id/:job/:arg1' do
+get '/do/:package_id/:job/*' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
   jobs = "//job:" + job
-  *args = params[:arg1]
+  raw_args = params[:splat]
+  args = raw_args.join.split('/')
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
   result = run_rcscript(url, jobs)
@@ -232,9 +233,20 @@ helpers do
     else
       route = @@routes.detect {|k,v| key[/#{k}/]}	    
       o = ($~)
+
+      #puts 'chimp : '  + args.inspect
       if o.is_a? MatchData then
-        a = o.captures
-        route[1][:proc].call(a, params)
+        remaining = $'
+        #puts 'remaining : ' + remaining
+        if remaining then
+          args = remaining.split('/')
+          args.shift
+        else
+          args = []
+        end
+        #a = o.captures
+        #puts 'a : ' + a.inspect
+        route[1][:proc].call( params, args)
       else
         "no match"
       end
@@ -254,7 +266,37 @@ get '/load/:package_id/:job' do
 
   # get the code
   code = result.first.map {|x| x.first}.join(';')
-  proc1 = Proc.new {|params|
+  proc1 = Proc.new {|params, args|
+    puts 'vvparams : ' + params.inspect.to_s
+    puts 'vvargs : ' + args.inspect.to_s
+    h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
+    @content_type = h[extension]
+    #puts 'ext : ' + extension + ' ' + @content_type
+    out = eval(code)
+
+    [out, @content_type]
+  }
+  route = "%s/%s" % [package_id, job]
+  @@routes[route] = {:route => :get, :proc => proc1}
+  content_type 'text/plain', :charset => 'utf-8'
+  #out
+  'job loaded'
+end
+
+get '/load/:package_id/:job/*' do
+
+  package_id = params[:package_id] #
+  *args = params[:splat]
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  jobs = "//job:" + job
+  url = "%s%s.rsf" % [url_base, package_id] 
+
+  result = run_rcscript(url, jobs)
+
+  # get the code
+  code = result.first.map {|x| x.first}.join(';')
+  proc1 = Proc.new {|params, *args|
+    #puts 'params : ' + params.inspect
     h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
     @content_type = h[extension]
     #puts 'ext : ' + extension + ' ' + @content_type
