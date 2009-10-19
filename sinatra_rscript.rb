@@ -13,7 +13,7 @@ use Rack::Evil
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@routes = {}
 @@services = {}
-@content_type = 'tex/html'
+@content_type = 'text/html'
 
 def run_rcscript(rsf_url, jobs, arg='')
   ajobs = jobs.split(/\s/)
@@ -22,8 +22,8 @@ def run_rcscript(rsf_url, jobs, arg='')
   rs.run(args)
 end
 
-def run(url, jobs)
-  result = run_rcscript(url, jobs)
+def run(url, jobs, qargs=[])
+  result, args = run_rcscript(url, jobs, qargs)
   code = [result].flatten.join("\n")
   eval(code)
 end
@@ -82,7 +82,7 @@ get '/do/:package_id/:job' do
   result = run_rcscript(url, jobs)
 
   # get the code
-  code = result.first.map {|x| x.first}.join(';')
+  code = [result].flatten.join("\n")
   out = eval(code)
 
   content_type @content_type, :charset => 'utf-8'
@@ -114,7 +114,7 @@ get '/do/:package_id/:job/*' do
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
   result = run_rcscript(url, jobs)
-  code = result.first.map {|x| x.first}.join
+  code = [result].flatten.join("\n")
 
   out = eval(code)
   content_type @content_type, :charset => 'utf-8'
@@ -252,9 +252,6 @@ get '/p/:project_name/:method_name' do
   project_name = params[:project_name]
   method_name = params[:method_name]
   run_projectx(project_name, method_name, request.params)
-  #params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-  #xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
-  #projectx_handler(xml_project)
 end
 
 
@@ -302,7 +299,7 @@ get '/load/:package_id/:job' do
   result = run_rcscript(url, jobs)
 
   # get the code
-  code = result.first.map {|x| x.first}.join(';')
+  code = [result].flatten.join("\n")
   proc1 = Proc.new {|params, args|
     h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
     @content_type = h[extension]
@@ -329,12 +326,12 @@ get '/load/:package_id/:job/*' do
   result = run_rcscript(url, jobs)
 
   # get the code
-  code = result.first.map {|x| x.first}.join(';')
+  code = [result].flatten.join('\n')
   proc1 = Proc.new {|params, *args|
-    #puts 'params : ' + params.inspect
+
     h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
     @content_type = h[extension]
-    #puts 'ext : ' + extension + ' ' + @content_type
+
     out = eval(code)
 
     [out, @content_type]

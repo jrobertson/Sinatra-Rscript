@@ -51,7 +51,7 @@ class RScript < RScriptBase
 
       out = run_rsf(args) do |doc| 
         doc.root.elements.to_a("//job[#{ajob.join(' or ')}]").map do |job|
-          job.elements.to_a('script').map {|s| run_script(s, args)}
+          job.elements.to_a('script').map {|s| run_script(s)}
         end
       end
       
@@ -59,13 +59,14 @@ class RScript < RScriptBase
       out = run_rsf(args) {|doc| doc.root.elements.to_a('//script').map {|s| run_script(s)}}    
     end 
 
-    out
+    [out, args]
   end
   
   private
       
   def run_rsf(args=[])
     rsfile = args[0]; args.shift
+
     $rsfile = rsfile[/[a-zA-z0-9]+(?=\.rsf)/]
     yield(Document.new(read_sourcecode(rsfile)))
   end
