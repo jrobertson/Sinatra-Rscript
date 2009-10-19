@@ -358,5 +358,7 @@ post '/*' do
 end
 
 # boot script
+doc = Document.new(File.open('server.xml','r').read)
+server_name = XPath.first(doc.root, 'summary/name/text()').to_s
 url = url_base + 'r.rsf'
-run(url, '//job:bootstrap')
+run(url, '//job:bootstrap', server_name)
