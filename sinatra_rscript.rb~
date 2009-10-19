@@ -16,14 +16,15 @@ url_base = 'http://rorbuilder.info/r/heroku/' #
 @content_type = 'tex/html'
 
 def run_rcscript(rsf_url, jobs, arg='')
-  args = [jobs, rsf_url, arg]
+  ajobs = jobs.split(/\s/)
+  args = [rsf_url, ajobs, arg].flatten
   rs = RScript.new()
   rs.run(args)
 end
 
 def run(url, jobs)
   result = run_rcscript(url, jobs)
-  code = result.first.map {|x| x.first}.join
+  code = [result].flatten.join("\n")
   eval(code)
 end
 
@@ -90,7 +91,7 @@ get '/do/:package_id/:job/*' do
 
 end
 
-get '/view-source/:package_id/' do
+get '/view-source/:package_id' do
   package_id = params[:package_id] #
   url = "%s%s.rsf" % [url_base, package_id]
   buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
@@ -105,7 +106,8 @@ end
 helpers do
 
   def run_rcscript(rsf_url, jobs, arg='')
-    args = [jobs, rsf_url, arg]
+    ajobs = jobs.split(/\s/)
+    args = [rsf_url, ajobs, arg].flatten
     rs = RScript.new()
     rs.run(args)
   end
@@ -234,10 +236,8 @@ helpers do
       route = @@routes.detect {|k,v| key[/#{k}/]}	    
       puts 'route : ' + route.to_s
       o = ($~)
-      puts 'oooo ' + o.inspect.to_s
       if o.is_a? MatchData then
         remaining = $'
-        #puts 'remaining : ' + remaining
         if remaining then
           args = remaining.split('/')
           args.shift

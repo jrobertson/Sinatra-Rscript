@@ -16,14 +16,15 @@ url_base = 'http://rorbuilder.info/r/heroku/' #
 @content_type = 'tex/html'
 
 def run_rcscript(rsf_url, jobs, arg='')
-  args = [jobs, rsf_url, arg]
+  ajobs = jobs.split(/\s/)
+  args = [rsf_url, ajobs, arg].flatten
   rs = RScript.new()
   rs.run(args)
 end
 
 def run(url, jobs)
   result = run_rcscript(url, jobs)
-  code = result.first.map {|x| x.first}.join
+  code = [result].flatten.join("\n")
   eval(code)
 end
 
@@ -90,7 +91,7 @@ get '/do/:package_id/:job/*' do
 
 end
 
-get '/view-source/:package_id/' do
+get '/view-source/:package_id' do
   package_id = params[:package_id] #
   url = "%s%s.rsf" % [url_base, package_id]
   buffer = open(url, "UserAgent" => 'Sinatra-Rscript').read
@@ -105,7 +106,8 @@ end
 helpers do
 
   def run_rcscript(rsf_url, jobs, arg='')
-    args = [jobs, rsf_url, arg]
+    ajobs = jobs.split(/\s/)
+    args = [rsf_url, ajobs, arg].flatten
     rs = RScript.new()
     rs.run(args)
   end
@@ -204,6 +206,11 @@ helpers do
     end
   end
 
+  def run_projectx(project_name, method_name, qparams=[])
+    params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
+    xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
+    projectx_handler(xml_project)
+  end
 
   @@app = App.new
 
@@ -213,9 +220,10 @@ end
 get '/p/:project_name/:method_name' do
   project_name = params[:project_name]
   method_name = params[:method_name]
-  params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-  xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
-  projectx_handler(xml_project)
+  run_projectx(project_name, method_name, request.params)
+  #params = "<params>%s</params>" % request.params.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
+  #xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
+  #projectx_handler(xml_project)
 end
 
 
