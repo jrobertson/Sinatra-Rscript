@@ -28,6 +28,30 @@ def run(url, jobs)
   eval(code)
 end
 
+def projectx_handler(xml_project)
+
+  out = ''
+  doc = Document.new(xml_project)
+  project_name = doc.root.attribute('name').to_s
+
+  if @@app.running? project_name then
+
+    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
+      method = node_method.attributes.get_attribute('name').to_s
+      puts method
+      params = node_method.elements['params'].to_s
+      method_out, @content_type = @@app.execute(project_name, method, params)
+      method_out
+    end
+  else
+    out = "that project doesn't exist"
+  end
+  @content_type ||= 'text/xml'
+
+  content_type @content_type, :charset => 'utf-8'
+  out
+end
+
 def run_projectx(project_name, method_name, qparams=[])
   params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
   xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]

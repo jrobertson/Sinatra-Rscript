@@ -28,6 +28,13 @@ def run(url, jobs)
   eval(code)
 end
 
+def run_projectx(project_name, method_name, qparams=[])
+  params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
+  xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
+  projectx_handler(xml_project)
+end
+
+
 
 get '/' do
   redirect '/do/r/p/packages'             
