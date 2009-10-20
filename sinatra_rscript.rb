@@ -1,7 +1,6 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 27-Sep-09
 
 require 'rubygems'
 require 'sinatra'
@@ -167,83 +166,12 @@ helpers do
     out
   end
 
-  class App
-    def initialize()
-      @available = {}
-      @running = {}
-    end
-
-    def load(app_name, handler_name)
-    	@available[app_name] = handler_name
-	    "'%s' loaded" % app_name
-    end
-
-    def run(app_name)
-      if self.available? app_name then
-        handler_name = @available[app_name]
-	      @running[app_name] = eval(handler_name + "_handler.new")
-	      return "'%s' running ..." % app_name
-      else
-      	return "app %s not available" % app_name
-      end      
-    end
-
-    def execute(app_name, method, params='')
-      @running[app_name].call(method, params)
-    end
-
-    def running?(app_name)
-      @running.has_key? app_name
-    end
-
-    def available?(app_name)
-    	@available.has_key? app_name
-    end
-
-    def stop(app_name)
-      if @running.delete(app_name) then
-	      return "app %s stopped" % app_name
-      else
-      	return "couldn't find app %s" % app_name
-      end
-    end
-
-    def running()
-    	@running.keys
-    end
-
-    def available()
-    	@available.keys
-    end
-
-    def unload(app_name)
-      handler_name = @available.delete(app_name)
-      if handler_name then
-        puts 'unhandle : ' + handler_name
-        Object.send(:remove_const, handler_name + "_handler")
-        Object.send(:remove_const, handler_name)
-	      return "app %s unloaded" % app_name
-      else
-      	return "couldn't find app %s" % app_name
-      end
-    end
-
-    def show_public_methods(app_name)
-      if running? app_name 
-        return @running[app_name].public_methods.grep(/call_/).map {|x| x.gsub(/call_/,'').gsub(/_/,'-')}.sort.join(', ')
-      else
-        return "app %s not running" % app_name
-      end
-    end
-  end
 
   def run_projectx(project_name, method_name, qparams=[])
     params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
     xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
     projectx_handler(xml_project)
   end
-
-  @@app = App.new
 
 end
 
