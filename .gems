@@ -2,3 +2,4 @@ nokogiri
 rack-contrib
 rmagick
 rqrcode
+builder
