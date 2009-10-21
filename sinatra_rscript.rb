@@ -135,19 +135,7 @@ helpers do
   end
 end
 
-# projectx request
-get '/p/:project_name/:method_name' do
-  project_name = params[:project_name]
-  method_name = params[:method_name]
-  run_projectx(project_name, method_name, request.params)
-end
 
-
-# projectx request
-get '/p/projectx' do
-  xml_project = request.params.to_a[0][1]
-  projectx_handler(xml_project)
-end
 
 get '/load/:package_id/:job' do
 
