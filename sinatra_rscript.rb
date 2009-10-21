@@ -10,6 +10,7 @@ use Rack::Evil
 
 
 url_base = 'http://rorbuilder.info/r/heroku/' #
+@@url_base = 'http://rorbuilder.info/r/heroku/' #
 @@routes = {}
 @@services = {}
 @content_type = 'text/html'
@@ -26,38 +27,6 @@ def run(url, jobs, qargs=[])
   code = [result].flatten.join("\n")
   eval(code)
 end
-
-def projectx_handler(xml_project)
-
-  out = ''
-  doc = Document.new(xml_project)
-  project_name = doc.root.attribute('name').to_s
-
-  if @@app.running? project_name then
-
-    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
-      method = node_method.attributes.get_attribute('name').to_s
-      puts method
-      params = node_method.elements['params'].to_s
-      method_out, @content_type = @@app.execute(project_name, method, params)
-      method_out
-    end
-  else
-    out = "that project doesn't exist"
-  end
-  @content_type ||= 'text/xml'
-
-  content_type @content_type, :charset => 'utf-8' if defined? content_type
-  out
-end
-
-def run_projectx(project_name, method_name, qparams=[])
-  params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-  xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
-  projectx_handler(xml_project)
-end
-
-
 
 get '/' do
   redirect '/do/r/p/packages'             
@@ -142,37 +111,28 @@ helpers do
     rs.run(args)
   end
 
-  def projectx_handler(xml_project)
+  def load_rsf_job(package_id, job, extension='.html')
+    jobs = "//job:" + job
+    url = "%s%s.rsf" % [@@url_base, package_id] 
 
-    out = ''
-    doc = Document.new(xml_project)
-    project_name = doc.root.attribute('name').to_s
+    result = run_rcscript(url, jobs)
 
-    if @@app.running? project_name then
+    # get the code
+    code = [result].flatten.join("\n")
+    proc1 = Proc.new {|params, args|
+      h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
+      @content_type = h[extension]
 
-	    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
-	      method = node_method.attributes.get_attribute('name').to_s
-        puts method
-	      params = node_method.elements['params'].to_s
-        method_out, @content_type = @@app.execute(project_name, method, params)
-        method_out
-	    end
-    else
-      out = "that project doesn't exist"
-    end
-    @content_type ||= 'text/xml'
+      out = eval(code)
 
-    content_type @content_type, :charset => 'utf-8'
-    out
+      [out, @content_type]
+    }
+    route = "%s/%s" % [package_id, job]
+    @@routes[route] = {:route => :get, :proc => proc1}
+    content_type 'text/plain', :charset => 'utf-8' if defined? content_type
+
+    'job loaded'
   end
-
-
-  def run_projectx(project_name, method_name, qparams=[])
-    params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-    xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
-    projectx_handler(xml_project)
-  end
-
 end
 
 # projectx request
@@ -187,6 +147,13 @@ end
 get '/p/projectx' do
   xml_project = request.params.to_a[0][1]
   projectx_handler(xml_project)
+end
+
+get '/load/:package_id/:job' do
+
+  package_id = params[:package_id] #
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  load_rsf_job(package_id, job, extension)
 end
 
 helpers do
@@ -217,59 +184,6 @@ helpers do
 
 end
 
-get '/load/:package_id/:job' do
-
-  package_id = params[:package_id] #
-  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  jobs = "//job:" + job
-  url = "%s%s.rsf" % [url_base, package_id] 
-
-  result = run_rcscript(url, jobs)
-
-  # get the code
-  code = [result].flatten.join("\n")
-  proc1 = Proc.new {|params, args|
-    h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
-    @content_type = h[extension]
-
-    out = eval(code)
-
-    [out, @content_type]
-  }
-  route = "%s/%s" % [package_id, job]
-  @@routes[route] = {:route => :get, :proc => proc1}
-  content_type 'text/plain', :charset => 'utf-8'
-
-  'job loaded'
-end
-
-get '/load/:package_id/:job/*' do
-
-  package_id = params[:package_id] #
-  *args = params[:splat]
-  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  jobs = "//job:" + job
-  url = "%s%s.rsf" % [url_base, package_id] 
-
-  result = run_rcscript(url, jobs)
-
-  # get the code
-  code = [result].flatten.join('\n')
-  proc1 = Proc.new {|params, *args|
-
-    h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
-    @content_type = h[extension]
-
-    out = eval(code)
-
-    [out, @content_type]
-  }
-  route = "%s/%s" % [package_id, job]
-  @@routes[route] = {:route => :get, :proc => proc1}
-  content_type 'text/plain', :charset => 'utf-8'
-  #out
-  'job loaded'
-end
 
 # custom routes
 get '/*' do
