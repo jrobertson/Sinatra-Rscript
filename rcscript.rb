@@ -20,13 +20,6 @@
 # MIT license - basically you can do anything you like with the script.
 #  http://www.opensource.org/licenses/mit-license.php
 
-# changelog
-# 24-Aug-2009 moved methods run_script and read_sourcecode to rcscript_base
-# 20-Aug-2009 included cgi to allow proper escaping of cgi type queries
-# 25-Jul-2009 jobs are now executed within a single thread
-# 23-Jul-2009 modified the fetching of cdatas to use .join instead of .to_s
-# 16-Jul-2009 the name of the rsf_file is now an evironment variable $rsfile
-#  8-Jul-2009 Changed the class layout to allow it to be optionally called by another class.
 
 require 'rcscript_base'
 
@@ -49,10 +42,10 @@ class RScript < RScriptBase
 
       args.compact!
 
-      out = run_rsf(args) do |doc| 
+      out = run_rsf(args) do |doc|
         doc.root.elements.to_a("//job[#{ajob.join(' or ')}]").map do |job|
-          job.elements.to_a('script').map {|s| run_script(s)}
-        end
+          job.elements.to_a('script').map {|s| run_script(s)}.join("\n")
+        end.join("\n")
       end
       
     else    

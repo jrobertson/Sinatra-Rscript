@@ -24,8 +24,24 @@ end
 
 def run(url, jobs, qargs=[])
   result, args = run_rcscript(url, jobs, qargs)
-  code = [result].flatten.join("\n")
+  code = result
   eval(code)
+end
+
+def display_url_run(url, jobs, extension='.html')
+  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
+  @content_type = h[extension]
+
+  out = run(url, jobs)
+
+  content_type @content_type, :charset => 'utf-8' if defined? content_type
+  out
+end
+
+def display_package_run(package_id, job, extension='.html')
+  jobs = "//job:" + job
+  url = "%s%s.rsf" % [@@url_base, package_id] 
+  display_url_run(url,jobs, extension)
 end
 
 get '/' do
@@ -36,25 +52,17 @@ get '/:alias' do
   url = url_base + "alias.xml?passthru=1"
 
   doc = Document.new(open(url, "UserAgent" => "Sinatra-Rscript").read)
-  uri = XPath.first(doc.root, "records/alias[name='#{params[:alias]}']/uri/text()")
-  redirect uri.to_s
+  node = XPath.first(doc.root, "records/alias[name='#{params[:alias]}' and type='r']")
+  pass unless node
+  uri = node.text('uri').to_s
+
+  redirect uri
 end
 
 get '/do/:package_id/:job' do
-  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  jobs = "//job:" + job
-  url = "%s%s.rsf" % [url_base, package_id] 
-  @content_type = h[extension]
-  result = run_rcscript(url, jobs)
-
-  # get the code
-  code = [result].flatten.join("\n")
-  out = eval(code)
-
-  content_type @content_type, :charset => 'utf-8'
-  out
+  display_package_run(package_id, job, extension)
 end
 
 get '/view-source/:package_id/:job' do
@@ -104,13 +112,20 @@ end
 
 helpers do
 
-  def run_rcscript(rsf_url, jobs, arg='')
+  def run_rcscriptzz(rsf_url, jobs, arg='')
     ajobs = jobs.split(/\s/)
     args = [rsf_url, ajobs, arg].flatten
     rs = RScript.new()
     rs.run(args)
   end
 
+  def run_rcscript(rsf_url, jobs, arg='')
+    ajobs = jobs.split(/\s/)
+    args = [rsf_url, ajobs, arg].flatten
+    rs = RScript.new()
+    out = rs.run(args)
+    out
+  end
 
 end
 
@@ -132,17 +147,16 @@ get '/load/:package_id/:job' do
 
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  load_rsf_job(package_id, job, extension)
+  load_rsf_job(package_id, job, route=package_id + '/' + job, extension)
 end
 
 helpers do
 
-  def follow_route(key, route_type = :get)
+  def follow_route(key, route_type=:get)
     if @@routes.has_key? key and @@routes[key][:route] == route_type then
       @@routes[key][:proc].call(params)
     else
       route = @@routes.detect {|k,v| key[/#{k}/]}	    
-      puts 'route : ' + route.to_s
       o = ($~)
       if o.is_a? MatchData then
         remaining = $'
@@ -167,7 +181,7 @@ end
 # custom routes
 get '/*' do
   key = params[:splat].join
-  out, @content_type = follow_route(key)  
+  out, @content_type = follow_route(key, :get)  
   @content_type ||= 'text/html'
   content_type @content_type, :charset => 'utf-8'
   out

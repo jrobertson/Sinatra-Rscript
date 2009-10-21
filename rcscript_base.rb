@@ -1,9 +1,6 @@
 #!/usr/bin/ruby
 #file: rcscript_base.rb
 
-# created: 24-Aug-2009
-# updated: 24-Aug-2009
-
 require 'cgi'
 require 'open-uri'
 require 'rexml/document'
