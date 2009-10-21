@@ -111,28 +111,7 @@ helpers do
     rs.run(args)
   end
 
-  def load_rsf_job(package_id, job, extension='.html')
-    jobs = "//job:" + job
-    url = "%s%s.rsf" % [@@url_base, package_id] 
 
-    result = run_rcscript(url, jobs)
-
-    # get the code
-    code = [result].flatten.join("\n")
-    proc1 = Proc.new {|params, args|
-      h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
-      @content_type = h[extension]
-
-      out = eval(code)
-
-      [out, @content_type]
-    }
-    route = "%s/%s" % [package_id, job]
-    @@routes[route] = {:route => :get, :proc => proc1}
-    content_type 'text/plain', :charset => 'utf-8' if defined? content_type
-
-    'job loaded'
-  end
 end
 
 # projectx request
