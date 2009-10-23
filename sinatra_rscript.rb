@@ -22,10 +22,9 @@ def run_rcscript(rsf_url, jobs, arg='')
   rs.run(args)
 end
 
-def run(url, jobs, qargs=[])
+def run(url, jobs, qargs='')
   result, args = run_rcscript(url, jobs, qargs)
-  code = result
-  eval(code)
+  eval(result)
 end
 
 def display_url_run(url, jobs, extension='.html')
@@ -112,13 +111,6 @@ end
 
 helpers do
 
-  def run_rcscriptzz(rsf_url, jobs, arg='')
-    ajobs = jobs.split(/\s/)
-    args = [rsf_url, ajobs, arg].flatten
-    rs = RScript.new()
-    rs.run(args)
-  end
-
   def run_rcscript(rsf_url, jobs, arg='')
     ajobs = jobs.split(/\s/)
     args = [rsf_url, ajobs, arg].flatten
@@ -192,10 +184,13 @@ post '/*' do
   follow_route(key, :post)
 end
 
-# boot script
-Thread.new {
-doc = Document.new(File.open('server.xml','r').read)
-server_name = XPath.first(doc.root, 'summary/name/text()').to_s
-url = url_base + 'r.rsf'
-run(url, '//job:bootstrap', server_name)
-}
+configure do
+  puts 'bootstrapping ... '
+  # boot script
+  Thread.new {
+    doc = Document.new(File.open('server.xml','r').read)
+    server_name = XPath.first(doc.root, 'summary/name/text()').to_s
+    url = url_base + 'r.rsf'
+    run(url, '//job:bootstrap', server_name)
+  }
+end
