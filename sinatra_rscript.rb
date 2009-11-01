@@ -24,14 +24,12 @@ end
 
 def run(url, jobs, qargs='')
   result, args = run_rcscript(url, jobs, qargs)
-  puts 'args : ' + args.inspect
   eval(result)
 end
 
 def display_url_run(url, jobs, extension='.html', args)
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain', '.rss' => 'application/rss+xml'}
   @content_type = h[extension]
-  puts 'about to run'
   out = run(url, jobs, args)
 
   content_type @content_type, :charset => 'utf-8' if defined? content_type
@@ -84,25 +82,9 @@ get '/do/:package_id/:job/*' do
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain', '.rss' => 'application/rss+xml'}
   package_id = params[:package_id] #
   job = params[:job]
-=begin
-  011109
-  jobs = "//job:" + job
-  raw_args = params[:splat]
-  args = raw_args.join.split('/')
-  url = "%s%s.rsf" % [url_base, package_id] 
-  @content_type = h[extension]
-  result = run_rcscript(url, jobs)
-  code = [result].flatten.join("\n")
-
-  out = eval(code)
-  content_type @content_type, :charset => 'utf-8'
-  out
-=end
 
   raw_args = params[:splat].join
   args, extension = raw_args[/\.\w{3}$/] ? [$`, $&] : [raw_args.split('/'), '.html']
-  #puts "args : " + args.inspect
-  #puts "hey"
   display_package_run(package_id, job, extension, args)
 
 end
