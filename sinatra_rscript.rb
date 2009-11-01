@@ -27,19 +27,20 @@ def run(url, jobs, qargs='')
   eval(result)
 end
 
-def display_url_run(url, jobs, extension = '.html', args = [])
-  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain', '.rss' => 'application/rss+xml'}
+def display_url_run(url, jobs, extension='.html')
+  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   @content_type = h[extension]
-  out = run(url, jobs, args)
+
+  out = run(url, jobs)
 
   content_type @content_type, :charset => 'utf-8' if defined? content_type
   out
 end
 
-def display_package_run(package_id, job, extension='.html', args)
+def display_package_run(package_id, job, extension='.html')
   jobs = "//job:" + job
   url = "%s%s.rsf" % [@@url_base, package_id] 
-  display_url_run(url,jobs, extension, args)
+  display_url_run(url,jobs, extension)
 end
 
 get '/' do
@@ -79,13 +80,20 @@ get '/view-source/:package_id/:job' do
 end
 
 get '/do/:package_id/:job/*' do
-  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain', '.rss' => 'application/rss+xml'}
+  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
-  job = params[:job]
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  jobs = "//job:" + job
+  raw_args = params[:splat]
+  args = raw_args.join.split('/')
+  url = "%s%s.rsf" % [url_base, package_id] 
+  @content_type = h[extension]
+  result = run_rcscript(url, jobs)
+  code = [result].flatten.join("\n")
 
-  raw_args = params[:splat].join
-  args, extension = raw_args[/\.\w{3}$/] ? [$`, $&] : [raw_args.split('/'), '.html']
-  display_package_run(package_id, job, extension, args)
+  out = eval(code)
+  content_type @content_type, :charset => 'utf-8'
+  out
 
 end
 
