@@ -27,7 +27,7 @@ def run(url, jobs, qargs='')
   eval(result)
 end
 
-def display_url_run(url, jobs, extension='.html', args)
+def display_url_run(url, jobs, extension = '.html', args = [])
   h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain', '.rss' => 'application/rss+xml'}
   @content_type = h[extension]
   out = run(url, jobs, args)
