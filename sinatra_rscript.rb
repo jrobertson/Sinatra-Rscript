@@ -11,7 +11,7 @@ use Rack::Evil
 
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@url_base = 'http://rorbuilder.info/r/heroku/' #
-@@routes = {}
+@@get_routes = {}; @@post_routes = {}
 @@services = {}
 @content_type = 'text/html'
 
@@ -144,11 +144,11 @@ end
 
 helpers do
 
-  def follow_route(key, route_type=:get)
-    if @@routes.has_key? key and @@routes[key][:route] == route_type then
-      @@routes[key][:proc].call(params)
+  def follow_route(routes, key)
+    if routes.has_key? key then
+      routes[key].call(params)
     else
-      route = @@routes.detect {|k,v| key[/#{k}/]}	    
+      route = routes.detect {|k,v| key[/#{k}/]}
       o = ($~)
       if o.is_a? MatchData then
         remaining = $'
@@ -160,7 +160,7 @@ helpers do
         end
         #a = o.captures
 
-        route[1][:proc].call( params, args)
+        route[1].call( params, args)
       else
         "no match"
       end
@@ -173,7 +173,7 @@ end
 # custom routes
 get '/*' do
   key = params[:splat].join
-  out, @content_type = follow_route(key, :get)  
+  out, @content_type = follow_route(@@get_routes, key)  
   @content_type ||= 'text/html'
   content_type @content_type, :charset => 'utf-8'
   out
@@ -181,7 +181,7 @@ end
 
 post '/*' do
   key = params[:splat].join
-  follow_route(key, :post)
+  follow_route(@@post_routes, key)
 end
 
 configure do
