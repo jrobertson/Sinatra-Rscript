@@ -150,7 +150,7 @@ helpers do
     else
       route = routes.detect {|k,v| key[/#{k}/]}
       o = ($~)
-      if o.is_a? MatchData then
+      if route == key[/route(?=\/)/] and o.is_a? MatchData then
         remaining = $'
         if remaining then
           args = remaining.split('/')
@@ -158,11 +158,12 @@ helpers do
         else
           args = []
         end
-        #a = o.captures
 
         route[1].call( params, args)
       else
-        "no match"
+        url = @@url_base + 'r.rsf'
+        run(url, '//job:p150', key)
+        #"no match"
       end
     end
   end
