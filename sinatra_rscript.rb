@@ -191,7 +191,7 @@ configure do
   Thread.new {
     doc = Document.new(File.open('server.xml','r').read)
     server_name = XPath.first(doc.root, 'summary/name/text()').to_s
-    url = url_base + 'r.rsf'
+    url = url_base + 'startup.rsf'
     run(url, '//job:bootstrap', server_name)
   }
 end
