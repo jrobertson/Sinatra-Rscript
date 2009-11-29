@@ -13,6 +13,7 @@ url_base = 'http://rorbuilder.info/r/heroku/' #
 @@url_base = 'http://rorbuilder.info/r/heroku/' #
 @@get_routes = {}; @@post_routes = {}
 @@services = {}
+@@templates = {}
 @content_type = 'text/html'
 
 def run_rcscript(rsf_url, jobs, arg='')
@@ -161,8 +162,8 @@ helpers do
 
         route[1].call( params, args)
       else
-        url = @@url_base + 'r.rsf'
-        run(url, '//job:p150', key)
+        url = @@url_base + 'dir.rsf'
+        run(url, '//job:list', key)
         #"no match"
       end
     end
