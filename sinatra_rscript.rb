@@ -163,7 +163,7 @@ helpers do
         route[1].call( params, args)
       else
         url = @@url_base + 'dir.rsf'
-        run(url, '//job:list', key)
+        run(url, '//job:view', key)
         #"no match"
       end
     end
