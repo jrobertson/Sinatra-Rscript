@@ -162,9 +162,9 @@ helpers do
 
         route[1].call( params, args)
       else
-        url = 'dir.rsf'
-        #run(url, '//job:view', key)
-        puts "no match"
+        url = @@url_base + 'dir.rsf'
+        run(url, '//job:view', key)
+        #puts "no match"
       end
     end
   end
