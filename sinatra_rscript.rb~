@@ -1,7 +1,6 @@
 #!/usr/bin/ruby  
 
 # file: sinatra_rscript.rb
-# update: 27-Sep-09
 
 require 'rubygems'
 require 'sinatra'
@@ -11,8 +10,10 @@ use Rack::Evil
 
 
 url_base = 'http://rorbuilder.info/r/heroku/' #
-@@routes = {}
+@@url_base = 'http://rorbuilder.info/r/heroku/' #
+@@get_routes = {}; @@post_routes = {}
 @@services = {}
+@@templates = {}
 @content_type = 'text/html'
 
 def run_rcscript(rsf_url, jobs, arg='')
@@ -22,43 +23,26 @@ def run_rcscript(rsf_url, jobs, arg='')
   rs.run(args)
 end
 
-def run(url, jobs, qargs=[])
+def run(url, jobs, qargs='')
   result, args = run_rcscript(url, jobs, qargs)
-  code = [result].flatten.join("\n")
-  eval(code)
+  eval(result)
 end
 
-def projectx_handler(xml_project)
+def display_url_run(url, jobs, extension='.html')
+  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
+  @content_type = h[extension]
 
-  out = ''
-  doc = Document.new(xml_project)
-  project_name = doc.root.attribute('name').to_s
-
-  if @@app.running? project_name then
-
-    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
-      method = node_method.attributes.get_attribute('name').to_s
-      puts method
-      params = node_method.elements['params'].to_s
-      method_out, @content_type = @@app.execute(project_name, method, params)
-      method_out
-    end
-  else
-    out = "that project doesn't exist"
-  end
-  @content_type ||= 'text/xml'
+  out = run(url, jobs)
 
   content_type @content_type, :charset => 'utf-8' if defined? content_type
   out
 end
 
-def run_projectx(project_name, method_name, qparams=[])
-  params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-  xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
-  projectx_handler(xml_project)
+def display_package_run(package_id, job, extension='.html')
+  jobs = "//job:" + job
+  url = "%s%s.rsf" % [@@url_base, package_id] 
+  display_url_run(url,jobs, extension)
 end
-
-
 
 get '/' do
   redirect '/do/r/p/packages'             
@@ -68,25 +52,17 @@ get '/:alias' do
   url = url_base + "alias.xml?passthru=1"
 
   doc = Document.new(open(url, "UserAgent" => "Sinatra-Rscript").read)
-  uri = XPath.first(doc.root, "records/alias[name='#{params[:alias]}']/uri/text()")
-  redirect uri.to_s
+  node = XPath.first(doc.root, "records/alias[name='#{params[:alias]}' and type='r']")
+  pass unless node
+  uri = node.text('uri').to_s
+
+  redirect uri
 end
 
 get '/do/:package_id/:job' do
-  h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
   package_id = params[:package_id] #
   job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  jobs = "//job:" + job
-  url = "%s%s.rsf" % [url_base, package_id] 
-  @content_type = h[extension]
-  result = run_rcscript(url, jobs)
-
-  # get the code
-  code = result.first.map {|x| x.first}.join(';')
-  out = eval(code)
-
-  content_type @content_type, :charset => 'utf-8'
-  out
+  display_package_run(package_id, job, extension)
 end
 
 get '/view-source/:package_id/:job' do
@@ -114,7 +90,7 @@ get '/do/:package_id/:job/*' do
   url = "%s%s.rsf" % [url_base, package_id] 
   @content_type = h[extension]
   result = run_rcscript(url, jobs)
-  code = result.first.map {|x| x.first}.join
+  code = [result].flatten.join("\n")
 
   out = eval(code)
   content_type @content_type, :charset => 'utf-8'
@@ -140,110 +116,9 @@ helpers do
     ajobs = jobs.split(/\s/)
     args = [rsf_url, ajobs, arg].flatten
     rs = RScript.new()
-    rs.run(args)
-  end
-
-  def projectx_handler(xml_project)
-
-    out = ''
-    doc = Document.new(xml_project)
-    project_name = doc.root.attribute('name').to_s
-
-    if @@app.running? project_name then
-
-	    out = XPath.match(doc.root, 'methods/method').map  do |node_method|
-	      method = node_method.attributes.get_attribute('name').to_s
-        puts method
-	      params = node_method.elements['params'].to_s
-        method_out, @content_type = @@app.execute(project_name, method, params)
-        method_out
-	    end
-    else
-      out = "that project doesn't exist"
-    end
-    @content_type ||= 'text/xml'
-
-    content_type @content_type, :charset => 'utf-8'
+    out = rs.run(args)
     out
   end
-
-  class App
-    def initialize()
-      @available = {}
-      @running = {}
-    end
-
-    def load(app_name, handler_name)
-    	@available[app_name] = handler_name
-	    "'%s' loaded" % app_name
-    end
-
-    def run(app_name)
-      if self.available? app_name then
-        handler_name = @available[app_name]
-	      @running[app_name] = eval(handler_name + "_handler.new")
-	      return "'%s' running ..." % app_name
-      else
-      	return "app %s not available" % app_name
-      end      
-    end
-
-    def execute(app_name, method, params='')
-      @running[app_name].call(method, params)
-    end
-
-    def running?(app_name)
-      @running.has_key? app_name
-    end
-
-    def available?(app_name)
-    	@available.has_key? app_name
-    end
-
-    def stop(app_name)
-      if @running.delete(app_name) then
-	      return "app %s stopped" % app_name
-      else
-      	return "couldn't find app %s" % app_name
-      end
-    end
-
-    def running()
-    	@running.keys
-    end
-
-    def available()
-    	@available.keys
-    end
-
-    def unload(app_name)
-      handler_name = @available.delete(app_name)
-      if handler_name then
-        puts 'unhandle : ' + handler_name
-        Object.send(:remove_const, handler_name + "_handler")
-        Object.send(:remove_const, handler_name)
-	      return "app %s unloaded" % app_name
-      else
-      	return "couldn't find app %s" % app_name
-      end
-    end
-
-    def show_public_methods(app_name)
-      if running? app_name 
-        return @running[app_name].public_methods.grep(/call_/).map {|x| x.gsub(/call_/,'').gsub(/_/,'-')}.sort.join(', ')
-      else
-        return "app %s not running" % app_name
-      end
-    end
-  end
-
-  def run_projectx(project_name, method_name, qparams=[])
-    params = "<params>%s</params>" % qparams.map{|k,v| "<param var='%s'>%s</param>" % [k,v]}.to_s
-    xml_project = project = "<project name='%s'><methods><method name='%s'>%s</method></methods></project>" % [project_name, method_name, params]
-    projectx_handler(xml_project)
-  end
-
-  @@app = App.new
 
 end
 
@@ -261,16 +136,22 @@ get '/p/projectx' do
   projectx_handler(xml_project)
 end
 
+get '/load/:package_id/:job' do
+
+  package_id = params[:package_id] #
+  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
+  load_rsf_job(package_id, job, route=package_id + '/' + job, extension)
+end
+
 helpers do
 
-  def follow_route(key, route_type = :get)
-    if @@routes.has_key? key and @@routes[key][:route] == route_type then
-      @@routes[key][:proc].call(params)
+  def follow_route(routes, key)
+    if routes.has_key? key then
+      routes[key].call(params)
     else
-      route = @@routes.detect {|k,v| key[/#{k}/]}	    
-      puts 'route : ' + route.to_s
-      o = ($~)
-      if o.is_a? MatchData then
+      route = routes.detect {|k,v| key[/#{k}/]}
+
+      if route then
         remaining = $'
         if remaining then
           args = remaining.split('/')
@@ -278,75 +159,25 @@ helpers do
         else
           args = []
         end
-        #a = o.captures
 
-        route[1][:proc].call( params, args)
+        route[1].call( params, args)
       else
-        "no match"
+        puts 'preparing to view file'
+        url = @@url_base + 'dir.rsf'
+        run(url, '//job:view', key)
+        #puts "no match"
       end
     end
   end
 
+
 end
 
-get '/load/:package_id/:job' do
-
-  package_id = params[:package_id] #
-  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  jobs = "//job:" + job
-  url = "%s%s.rsf" % [url_base, package_id] 
-
-  result = run_rcscript(url, jobs)
-
-  # get the code
-  code = [result].flatten.join("\n")
-  proc1 = Proc.new {|params, args|
-    h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
-    @content_type = h[extension]
-
-    out = eval(code)
-
-    [out, @content_type]
-  }
-  route = "%s/%s" % [package_id, job]
-  @@routes[route] = {:route => :get, :proc => proc1}
-  content_type 'text/plain', :charset => 'utf-8'
-
-  'job loaded'
-end
-
-get '/load/:package_id/:job/*' do
-
-  package_id = params[:package_id] #
-  *args = params[:splat]
-  job, extension = params[:job][/\.\w{3}$/] ? [$`, $&] : [params[:job], '.html']
-  jobs = "//job:" + job
-  url = "%s%s.rsf" % [url_base, package_id] 
-
-  result = run_rcscript(url, jobs)
-
-  # get the code
-  code = [result].flatten.join('\n')
-  proc1 = Proc.new {|params, *args|
-
-    h = {'.xml' => 'text/xml','.html' => 'text/html','.txt' => 'text/plain'}
-    @content_type = h[extension]
-
-    out = eval(code)
-
-    [out, @content_type]
-  }
-  route = "%s/%s" % [package_id, job]
-  @@routes[route] = {:route => :get, :proc => proc1}
-  content_type 'text/plain', :charset => 'utf-8'
-  #out
-  'job loaded'
-end
 
 # custom routes
 get '/*' do
   key = params[:splat].join
-  out, @content_type = follow_route(key)  
+  out, @content_type = follow_route(@@get_routes, key)  
   @content_type ||= 'text/html'
   content_type @content_type, :charset => 'utf-8'
   out
@@ -354,9 +185,16 @@ end
 
 post '/*' do
   key = params[:splat].join
-  follow_route(key, :post)
+  follow_route(@@post_routes, key)
 end
 
-# boot script
-url = url_base + 'r.rsf'
-run(url, '//job:bootstrap')
+configure do
+  puts 'bootstrapping ... '
+  # boot script
+  Thread.new {
+    doc = Document.new(File.open('server.xml','r').read)
+    server_name = XPath.first(doc.root, 'summary/name/text()').to_s
+    url = url_base + 'startup.rsf'
+    run(url, '//job:bootstrap', server_name)
+  }
+end
