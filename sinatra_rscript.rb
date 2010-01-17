@@ -8,7 +8,7 @@ require 'rcscript'
 require 'rack/contrib'
 use Rack::Evil
 
-
+Sinatra::Application.port = 4568
 url_base = 'http://rorbuilder.info/r/heroku/' #
 @@url_base = 'http://rorbuilder.info/r/heroku/' #
 @@get_routes = {}; @@post_routes = {}
@@ -162,6 +162,7 @@ helpers do
 
         route[1].call( params, args)
       else
+        puts 'preparing to view file'
         url = @@url_base + 'dir.rsf'
         run(url, '//job:view', key)
         #puts "no match"
