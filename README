@@ -1,5 +1,17 @@
 README
 ------
 
-Sinatra-Rscript is a plain Sinatra application which is driven by the Ruby Script File engine.
+Sinatra-Rscript is a Sinatra application  which executes a Ruby Script File (RSF) from a web server. 
 
+*prerequisites*
+gem install rcscript
+
+*running*
+rackup config.ru
+   or
+ruby sinatra_rscript.rb
+
+Resources:
+http://snippets.dzone.com/user/jrobertson/tag/sinatra
+http://rscript.heroku.com
+http://rscript.rorbuilder.info
